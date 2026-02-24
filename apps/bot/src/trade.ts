@@ -37,11 +37,12 @@ export async function handleBuy(ctx: Context, marketId: string, outcomeIndex: nu
       });
 
       if (!user || !user.polymarketAddress) {
-        await ctx.reply("⚠️ 你尚未绑定 Polymarket 账户，无法交易。\n请先发送 /bind 进行绑定。");
+        await ctx.reply("⚠️ 你尚未绑定 Polymarket 账户，无法交易。\n请先点击「🔗 生成绑定链接」进行绑定。");
         return;
       }
-    } catch {
-      await ctx.reply("⚠️ 数据库未就绪，暂无法交易。");
+    } catch (e) {
+      console.error("Database check error:", e);
+      await ctx.reply("⚠️ 数据库连接失败，请稍后重试。如果问题持续，请联系管理员检查服务状态。");
       return;
     }
 

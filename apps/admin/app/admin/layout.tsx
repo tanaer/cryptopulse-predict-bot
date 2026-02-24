@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { LayoutDashboard, Users, Bell, BarChart3, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, Users, Bell, BarChart3, Settings, LogOut, TrendingUp } from "lucide-react";
 
 const navItems = [
   { href: "/admin", label: "概览", icon: LayoutDashboard },
   { href: "/admin/users", label: "用户管理", icon: Users },
   { href: "/admin/push", label: "推送管理", icon: Bell },
+  { href: "/admin/copy-trade", label: "复制交易", icon: TrendingUp },
   { href: "/admin/stats", label: "交易统计", icon: BarChart3 },
   { href: "/admin/settings", label: "系统设置", icon: Settings },
 ];

@@ -106,7 +106,7 @@ export async function handleCategory(ctx: Context, category: string, page: numbe
     }
   } catch (error) {
     console.error("Category error:", error);
-    await ctx.reply("❌ 获取分类失败，请稍后重试。");
+    await ctx.reply("❌ 获取分类失败，请稍后重试。\n\n可能原因：\n• 网络连接问题\n• Polymarket API 暂时不可用\n• 请检查服务器网络状态");
   }
 }
 
@@ -138,6 +138,7 @@ export async function handleEventDetail(ctx: Context, eventId: string) {
     }
 
     keyboard.url("🌐 在网页查看", `https://polymarket.com/event/${event.slug}`).row();
+    keyboard.text("🤖 AI 解读", `ai:${market.id}`).row();
     keyboard.text("🔙 热门市场", "cat:hot");
     
     if (event.image) {
@@ -217,10 +218,16 @@ function createPaginationKeyboard(count: number, page: number, actionPrefix: str
   if (page > 0) {
     kb.text("⬅️ 上一页", `${actionPrefix}:${page - 1}`);
   }
-  
+
   if (count >= limit) {
     kb.text("下一页 ➡️", `${actionPrefix}:${page + 1}`);
   }
+
+  // 添加返回首页按钮
+  if (page > 0 || count >= limit) {
+    kb.row();
+  }
+  kb.text("🏠 返回首页", "go_home");
 
   return kb;
 }

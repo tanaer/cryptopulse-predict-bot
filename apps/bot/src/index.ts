@@ -84,7 +84,8 @@ async function handleBind(ctx: any) {
     );
   } catch (e) {
     console.error("bind_error", e);
-    await ctx.reply("❌ 生成绑定链接失败，请稍后重试。");
+    const errorMsg = e instanceof Error ? e.message : "未知错误";
+    await ctx.reply(`❌ 生成绑定链接失败：${errorMsg}`);
   }
 }
 
@@ -145,6 +146,104 @@ bot.callbackQuery("cancel_order", async (ctx) => {
 bot.callbackQuery("portfolio", async (ctx) => {
   await ctx.answerCallbackQuery();
   await handlePortfolio(ctx);
+});
+
+bot.callbackQuery(/^ai:(.+)$/, async (ctx) => {
+  const marketId = ctx.match[1];
+  await ctx.answerCallbackQuery("正在分析...");
+  
+  try {
+    const response = await fetch(`${env.API_BASE_URL}/api/admin/ai/analyze`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        marketId,
+        marketTitle: "市场分析", // 实际应该从缓存获取市场标题
+      }),
+    });
+
+    if (!response.ok) {
+      await ctx.reply("❌ AI 分析暂时不可用，请稍后重试。");
+      return;
+    }
+
+    const data = await response.json() as {
+      analysis: {
+        summary: string;
+        keyPoints: string[];
+        risks: string[];
+        scenarios: string[];
+      };
+      disclaimer: string;
+    };
+
+    const { analysis, disclaimer } = data;
+    
+    let text = `🤖 <b>AI 市场解读</b>\n\n`;
+    text += `<b>摘要</b>\n${analysis.summary}\n\n`;
+    
+    text += `<b>关键要点</b>\n`;
+    analysis.keyPoints.forEach((point, i) => {
+      text += `${i + 1}. ${point}\n`;
+    });
+    text += `\n`;
+    
+    text += `<b>风险提示</b>\n`;
+    analysis.risks.forEach((risk, i) => {
+      text += `• ${risk}\n`;
+    });
+    text += `\n`;
+    
+    text += `<b>可能情景</b>\n`;
+    analysis.scenarios.forEach((scenario, i) => {
+      text += `• ${scenario}\n`;
+    });
+    text += `\n`;
+    
+    text += `<i>${disclaimer}</i>`;
+
+    await ctx.reply(text, { parse_mode: "HTML" });
+  } catch (error) {
+    console.error("AI analysis error:", error);
+    await ctx.reply("❌ AI 分析失败，请稍后重试。");
+  }
+});
+
+// 返回首页回调
+bot.callbackQuery("go_home", async (ctx) => {
+  await ctx.answerCallbackQuery();
+
+  const kb = new InlineKeyboard()
+    .text("🔗 生成绑定链接", "gen_bind")
+    .url("🌐 手动绑定", `${env.WEB_BASE_URL}/bind`)
+    .row();
+
+  kb.text("🔥 今日热点", "cat:hot")
+    .text("✨ 最新上线", "cat:new")
+    .row();
+
+  kb.text("💰 加密货币", "cat:crypto")
+    .text("🇺🇸 政治", "cat:politics")
+    .row();
+
+  kb.text("💼 我的仓位", "portfolio");
+
+  await ctx.editMessageText(
+    [
+      "👋 <b>欢迎使用 CryptoPulse Predict Bot</b>",
+      "",
+      "你可以在这里：",
+      "• 🔎 搜索预测市场 (直接发送关键词)",
+      "• 📈 下单交易 (支持限价/市价)",
+      "• 💼 管理仓位与订单",
+      "",
+      "👇 <b>热门分类</b>",
+      "点击下方按钮浏览市场，或直接发送关键词搜索。",
+      "",
+      "<i>本 Bot 仅为交易工具，不构成投资建议。</i>"
+    ].join("\n"),
+    { reply_markup: kb, parse_mode: "HTML" }
+  );
 });
 
 bot.catch(async (err) => {

@@ -21,7 +21,15 @@ export async function createBindCode(args: {
 
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
-    throw new Error(`bind_code_failed:${res.status}:${txt.slice(0, 200)}`);
+    console.error(`Bind code API error: ${res.status}`, txt);
+    if (res.status === 404) {
+      throw new Error("API 接口未找到（404），请确认 admin 服务已正确部署");
+    } else if (res.status === 401) {
+      throw new Error("API 认证失败（401），请检查 BOT_API_TOKEN 配置");
+    } else if (res.status === 503) {
+      throw new Error("数据库服务不可用（503），请稍后重试");
+    }
+    throw new Error(`请求失败: ${res.status}`);
   }
 
   const json = (await res.json()) as BindCodeResponse;

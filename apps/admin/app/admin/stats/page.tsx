@@ -1,5 +1,5 @@
 import { prisma } from "@cryptopulse/db";
-import { TrendingUp, Users, ShoppingCart, CheckCircle } from "lucide-react";
+import { TrendingUp, Users, ShoppingCart, CheckCircle, Award } from "lucide-react";
 
 async function getStats() {
   const [
@@ -68,6 +68,11 @@ export default async function StatsPage() {
     },
   ];
 
+  // Builder 配置状态
+  const builderConfigured = process.env.POLY_BUILDER_API_KEY && 
+                           process.env.POLY_BUILDER_SECRET && 
+                           process.env.POLY_BUILDER_PASSPHRASE;
+
   return (
     <div className="space-y-6">
       <div>
@@ -96,6 +101,39 @@ export default async function StatsPage() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Builder 归因状态 */}
+      <div className="rounded-lg border border-neutral-200 bg-white p-6">
+        <h2 className="text-lg font-medium mb-4 flex items-center gap-2">
+          <Award className="w-5 h-5" />
+          Builder 归因验证
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div className="p-4 bg-neutral-50 rounded-lg">
+            <div className="text-sm text-neutral-600 mb-1">Builder 配置</div>
+            <div className={`text-lg font-semibold ${builderConfigured ? "text-green-600" : "text-amber-600"}`}>
+              {builderConfigured ? "已配置" : "未配置"}
+            </div>
+          </div>
+          <div className="p-4 bg-neutral-50 rounded-lg">
+            <div className="text-sm text-neutral-600 mb-1">签名端点</div>
+            <div className="text-lg font-semibold text-blue-600">
+              /api/polymarket/sign
+            </div>
+          </div>
+          <div className="p-4 bg-neutral-50 rounded-lg">
+            <div className="text-sm text-neutral-600 mb-1">归因状态</div>
+            <div className="text-lg font-semibold text-neutral-900">
+              待验证
+            </div>
+          </div>
+        </div>
+        {!builderConfigured && (
+          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded text-sm text-amber-900">
+            请在环境变量中配置 POLY_BUILDER_API_KEY、POLY_BUILDER_SECRET 和 POLY_BUILDER_PASSPHRASE 以启用 Builder 归因
+          </div>
+        )}
       </div>
 
       {/* 最近订单 */}

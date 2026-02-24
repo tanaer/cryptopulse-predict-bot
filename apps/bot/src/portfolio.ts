@@ -7,7 +7,7 @@ export async function handlePortfolio(ctx: Context) {
     if (!telegramId) return;
 
     if (!env.BOT_API_TOKEN) {
-      await ctx.reply("⚠️ 系统未配置交易权限（BOT_API_TOKEN），暂无法查询仓位。");
+      await ctx.reply("⚠️ 系统未配置 API 访问权限，暂无法查询仓位。请联系管理员配置 BOT_API_TOKEN。");
       return;
     }
 
@@ -21,7 +21,16 @@ export async function handlePortfolio(ctx: Context) {
 
     if (!res.ok) {
       const txt = await res.text().catch(() => "");
-      await ctx.reply(`❌ 查询仓位失败（${res.status}）。${txt ? `\n${txt.slice(0, 200)}` : ""}`);
+      console.error(`Portfolio API error: ${res.status}`, txt);
+      if (res.status === 404) {
+        await ctx.reply("❌ 查询仓位失败：API 接口未找到（404）。请确认 admin 服务已正确部署。");
+      } else if (res.status === 401) {
+        await ctx.reply("❌ 查询仓位失败：API 认证失败（401）。请检查 BOT_API_TOKEN 配置。");
+      } else if (res.status === 503) {
+        await ctx.reply("❌ 查询仓位失败：数据库服务不可用（503）。请稍后重试。");
+      } else {
+        await ctx.reply(`❌ 查询仓位失败（${res.status}）。请稍后重试。`);
+      }
       return;
     }
 
