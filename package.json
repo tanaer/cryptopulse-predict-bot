@@ -1,0 +1,17 @@
+{
+  "name": "cryptopulse-predict-bot",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:admin": "npm -w apps/admin run dev",
+    "build:admin": "npm -w apps/admin run build",
+    "lint:admin": "npm -w apps/admin run lint",
+    "dev:bot": "npm -w apps/bot run dev",
+    "typecheck": "npm -ws run typecheck",
+    "test": "node --import tsx --test"
+  }
+}
+
